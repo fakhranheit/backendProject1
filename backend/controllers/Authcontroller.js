@@ -21,7 +21,7 @@ module.exports = {
           password: hashpassword,
           email,
           status: "unverified",
-          roleid: 2
+          role: 'user'
         };
         sql = `insert into users set ?`;
         mysqldb.query(sql, dataUser, (err1, res1) => {
