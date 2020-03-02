@@ -154,7 +154,7 @@ module.exports = {
                                 }
                             }
 
-                            sql = `select * from game`
+                            sql = `select gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id from genre gr join game gm on gm.genreId=gr.id`
                             mysqldb.query(sql, (err, res3) => {
                                 if (err) return res.status(500).send(err)
                                 return res.status(200).send(res3)
