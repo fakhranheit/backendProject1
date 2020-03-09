@@ -70,12 +70,58 @@ module.exports = {
             return res.status(200).send(res1)
         })
     },
+    deleteGenre: (req, res) => {
+        // console.log('masuk delete genre')
+        var selectedId = req.params.selectedId
+        // console.log(selectedId);
+        var sql = `select * from genre where id=${selectedId}`
+        mysqldb.query(sql, (err, res1) => {
+            if (err) {
+                return res.status(500)
+            }
+            // console.log(res1);
+
+        })
+
+        sql = `delete from genre where id=${selectedId}`
+        mysqldb.query(sql, (err2, res2) => {
+            if (err2) {
+
+
+                return res.status(500)
+            }
+            console.log('deleted', res2);
+
+            sql = `select * from genre`
+            mysqldb.query(sql, (err3, res3) => {
+                if (err3) {
+                    return res.status(500)
+                }
+                // console.log('genre terupdate', res3);
+
+                return res.status(200).send({ datagenre: res3 })
+            })
+        })
+
+    },
     getGame: (req, res) => {
         var sql = 'select gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id,gm.harga,gm.tanggalUpload from genre gr join game gm on gm.genreId=gr.id'
         mysqldb.query(sql, (err, res1) => {
             if (err) {
                 return res.status(500).send(err)
             }
+            return res.status(200).send(res1)
+        })
+    },
+    getDetailGame: (req, res) => {
+        var id = req.params.id
+        var sql = `select gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id,gm.harga from genre gr join game gm on gm.genreId=gr.id where gm.id=${id}`
+        mysqldb.query(sql, (err, res1) => {
+            if (err) {
+                // console.log(err)
+                return res.status(500).send(err)
+            }
+            console.log(res1);
             return res.status(200).send(res1)
         })
     },
@@ -146,7 +192,7 @@ module.exports = {
                                 if (imagePath) {
                                     fs.unlinkSync(`./public${imagePath}`)
                                 }
-                                return res2.status(500).json({ message: 'server error' })
+                                return res.status(500).json({ message: 'server error' })
                             }
                             if (imagePath) {
                                 if (res1[0].Foto) {
@@ -169,7 +215,7 @@ module.exports = {
         })
     },
     getLatestGame: (req, res) => {
-        var sql = 'select * from game gm join genre gr on gm.genreId=gr.id order by tanggalUpload DESC LIMIT 0, 3;'
+        var sql = 'select gr.*,gm.* from game gm join genre gr on gm.genreId=gr.id order by tanggalUpload DESC LIMIT 0, 3;'
         mysqldb.query(sql, (err, res1) => {
             if (err) return res.status(500).send(err)
             return res.status(200).send(res1)
