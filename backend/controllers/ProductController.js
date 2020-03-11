@@ -220,5 +220,51 @@ module.exports = {
             if (err) return res.status(500).send(err)
             return res.status(200).send(res1)
         })
+    },
+    addCart: (req, res) => {
+        var { gameid, userid } = req.body
+
+        var data = {
+            gameid,
+            userid,
+            status: 'waiting'
+        }
+
+        console.log('tes', req.body)
+        var sql = `select * from transaction where gameid=${gameid} and userid=${userid}`
+        mysqldb.query(sql, (err1, res1) => {
+            if (err1) return res.status(500).send(err1)
+            if (res1.length > 0) {
+                console.log('masuk data dobel', res1.length);
+                return res.status(200).send({ message: 'item sudah ada di cart' })
+            }
+            var sql = `insert into transaction set ?`
+            mysqldb.query(sql, data, (err2, res2) => {
+                if (err2) return res.status(500).send(err2)
+                return res.status(200).send({ res2, message: 'item berhasil ditambahkan' })
+            })
+        })
+    },
+    getDetailCart: (req, res) => {
+        var id = req.params.id
+        console.log('masuk sini', id);
+        var sql = `SELECT u.*,t.id as idtransaksi,g.*,t.status,t.userid FROM users u join transaction t on t.userid=u.id join game g on g.id=t.gameid where u.id=${id}`
+        mysqldb.query(sql, (err, result) => {
+            if (err) return res.status(500).send(err)
+            console.log(result);
+            return res.status(200).send(result)
+        })
+    },
+    deleteCart: (req, res) => {
+        var id = req.params.id
+        // console.log(id);
+        var sql = `delete from transaction where id=${id}`
+        mysqldb.query(sql, (err, result) => {
+            if (err) {
+                return res.status(500).send(err)
+            }
+            console.log(result);
+            return res.status(200).send(result)
+        })
     }
 }

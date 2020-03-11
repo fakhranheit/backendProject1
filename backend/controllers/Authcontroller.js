@@ -39,7 +39,7 @@ module.exports = {
     // console.log(password);
     if (id) {
       var sql = `select * from users where id=${id}`;
-      console.log(id);
+      // console.log(id);
       mysqldb.query(sql, (err, result) => {
         if (err) {
           console.log("error");
@@ -47,8 +47,7 @@ module.exports = {
         }
         // console.log("ini ", result);
         if (result.length > 0) {
-          // return res.status(200).send({ result, status: "login berhasil" });
-          return res.status(200).send({ id: result[0].id, username: result[0].username, password: result[0].password, status: "login berhasil" });
+          return res.status(200).send({ id: result[0].id, username: result[0].username, password: result[0].password, role: result[0].role, status: "login berhasil" });
         } else {
           return res.status(500).send({ status: "error", message: "username atau password salah", err });
         }
@@ -63,7 +62,7 @@ module.exports = {
         }
         // console.log("ini ", result);
         if (result.length > 0) {
-          return res.status(200).send({ id: result[0].id, username: result[0].username, password: result[0].password, status: "login berhasil" });
+          return res.status(200).send({ id: result[0].id, username: result[0].username, password: result[0].password, role: result[0].role, status: "login berhasil" });
         } else {
           return res.status(200).send({ status: "error", message: "username atau password salah" });
         }
