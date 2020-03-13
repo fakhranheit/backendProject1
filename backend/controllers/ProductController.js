@@ -231,14 +231,14 @@ module.exports = {
         }
 
         console.log('tes', req.body)
-        var sql = `select * from transaction where gameid=${gameid} and userid=${userid}`
+        var sql = `select * from transactiondetail where gameid=${gameid} and userid=${userid}`
         mysqldb.query(sql, (err1, res1) => {
             if (err1) return res.status(500).send(err1)
             if (res1.length > 0) {
                 console.log('masuk data dobel', res1.length);
                 return res.status(200).send({ message: 'item sudah ada di cart' })
             }
-            var sql = `insert into transaction set ?`
+            var sql = `insert into transactiondetail set ?`
             mysqldb.query(sql, data, (err2, res2) => {
                 if (err2) return res.status(500).send(err2)
                 return res.status(200).send({ res2, message: 'item berhasil ditambahkan' })
@@ -248,7 +248,7 @@ module.exports = {
     getDetailCart: (req, res) => {
         var id = req.params.id
         console.log('masuk sini', id);
-        var sql = `SELECT u.*,t.id as idtransaksi,g.*,t.status,t.userid FROM users u join transaction t on t.userid=u.id join game g on g.id=t.gameid where u.id=${id}`
+        var sql = `SELECT u.id,u.username,t.id as idtransaksidetail,g.*,t.status,t.userid FROM users u join transactiondetail t on t.userid=u.id join game g on g.id=t.gameid where u.id=${id}`
         mysqldb.query(sql, (err, result) => {
             if (err) return res.status(500).send(err)
             console.log(result);
@@ -258,7 +258,7 @@ module.exports = {
     deleteCart: (req, res) => {
         var id = req.params.id
         // console.log(id);
-        var sql = `delete from transaction where id=${id}`
+        var sql = `delete from transactiondetail where id=${id}`
         mysqldb.query(sql, (err, result) => {
             if (err) {
                 return res.status(500).send(err)
@@ -266,5 +266,35 @@ module.exports = {
             console.log(result);
             return res.status(200).send(result)
         })
+    },
+    checkoutCart: (req, res) => {
+        var iduser = req.params.iduser
+        // console.log(iduser);
+
+        var { totalharga } = req.body
+        var data = {
+            iduser,
+            totalharga
+        }
+
+        // console.log(data);
+
+        console.log('ini iduser', iduser, 'ini totalharga', totalharga);
+        var sql = `INSERT INTO transactions set ?`
+        mysqldb.query(sql, data, (err, result) => {
+            if (err) return res.status(500).send(err)
+            var data2 = {
+                idtransaction: result.insertId,
+                status: 'on process'
+            }
+
+            console.log(result.insertId);
+
+            sql = `UPDATE transactiondetail set ? where userid=${iduser} and status='waiting' `
+            mysqldb.query(sql, data2, (err1, result1) => {
+                if (err1) res.status(500).send(err1)
+            })
+        })
+
     }
 }
