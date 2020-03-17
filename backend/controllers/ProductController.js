@@ -257,7 +257,7 @@ module.exports = {
     },
     deleteCart: (req, res) => {
         var id = req.params.id
-        // console.log(id);
+        console.log(id);
         var sql = `delete from transactiondetail where id=${id}`
         mysqldb.query(sql, (err, result) => {
             if (err) {
@@ -295,6 +295,63 @@ module.exports = {
                 if (err1) res.status(500).send(err1)
             })
         })
+
+    },
+    getTotalHarga: (req, res) => {
+        var id = req.params.id
+        console.log(id);
+        var sql = `select totalharga from transactions where iduser=${id}`
+        mysqldb.query(sql, (err, result) => {
+            if (err) return res.status(500).send(err)
+            console.log(result);
+            return res.status(200).send(result)
+        })
+
+    },
+    postTransaction: (req, res) => {
+        var { iduser } = req.params
+        try {
+            const path = '/game/images'
+            const upload = uploader(path, 'TRANS').fields([{ name: 'image' }])
+
+            upload(req, res, err => {
+                const { image } = req.files
+                const imagePath = image ? path + "/" + image[0].filename : null
+                foto = imagePath
+                if (err) {
+                    fs.unlinkSync('./public' + imagePath)
+                    return res
+                        .status(500)
+                        .send({ message: 'upload gagal', error: err })
+                }
+                var data2 = {
+                    tanggalupload: new Date(),
+                    foto
+                }
+                console.log('masuk sini');
+
+                var sql = `update transactions set ? where iduser=${iduser}  `
+                mysqldb.query(sql, data2, (err2, res2) => {
+                    if (err2) return res.status(500).send(err2)
+                    console.log(res2);
+
+                    var data3 = {
+                        status: 'waiting confirm'
+                    }
+
+                    sql = `update transactiondetail where userid=${iduser}`
+                    mysqldb.query(sql, data3, (err3, res3) => {
+                        if (err3) res.status(500).send({ message: 'error on transactiondetail' })
+                    })
+
+                })
+                return res.status(200).send(res)
+            })
+        }
+        catch (error) {
+            console.log('error')
+            res.status(200).send({ status: error, message: 'there is an error' })
+        }
 
     }
 }
