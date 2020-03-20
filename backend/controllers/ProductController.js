@@ -30,7 +30,7 @@ module.exports = {
                         })
                     }
                     // sql = 'select * from game'
-                    sql = 'select gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto from genre gr join game gm on gm.genreId=gr.id'
+                    sql = 'select gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id from genre gr join game gm on gm.genreId=gr.id'
                     mysqldb.query(sql, (err1, result1) => {
                         if (err1) res.status(500).send(err1)
                         res.status(200).send({ dataGame: result1 })
@@ -192,7 +192,7 @@ module.exports = {
                                 if (imagePath) {
                                     fs.unlinkSync(`./public${imagePath}`)
                                 }
-                                return res.status(500).json({ message: 'server error' })
+                                return res.status(500).send({ message: 'server error' })
                             }
                             if (imagePath) {
                                 if (res1[0].Foto) {
@@ -200,7 +200,7 @@ module.exports = {
                                 }
                             }
 
-                            sql = `select gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id from genre gr join game gm on gm.genreId=gr.id`
+                            sql = `select gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id,gm.tanggalUpload,gm.harga from genre gr join game gm on gm.genreId=gr.id`
                             mysqldb.query(sql, (err, res3) => {
                                 if (err) return res.status(500).send(err)
                                 return res.status(200).send(res3)
@@ -227,7 +227,7 @@ module.exports = {
         var data = {
             gameid,
             userid,
-            status: 'waiting'
+            status: 'on cart'
         }
 
         console.log('tes', req.body)
@@ -277,8 +277,6 @@ module.exports = {
             totalharga
         }
 
-        // console.log(data);
-
         console.log('ini iduser', iduser, 'ini totalharga', totalharga);
         var sql = `INSERT INTO transactions set ?`
         mysqldb.query(sql, data, (err, result) => {
@@ -290,10 +288,11 @@ module.exports = {
 
             console.log(result.insertId);
 
-            sql = `UPDATE transactiondetail set ? where userid=${iduser} and status='waiting' `
+            sql = `UPDATE transactiondetail set ? where userid=${iduser} and status='on cart' `
             mysqldb.query(sql, data2, (err1, result1) => {
                 if (err1) res.status(500).send(err1)
             })
+            return res.status(200).send(result)
         })
 
     },
@@ -309,49 +308,92 @@ module.exports = {
 
     },
     postTransaction: (req, res) => {
-        var { iduser } = req.params
+        var iduser = req.params.iduser
         try {
-            const path = '/game/images'
+            const path = "/game/images"
             const upload = uploader(path, 'TRANS').fields([{ name: 'image' }])
 
             upload(req, res, err => {
                 const { image } = req.files
                 const imagePath = image ? path + "/" + image[0].filename : null
-                foto = imagePath
+                const data = JSON.parse(req.body.data)
+                console.log(data)
+                data.Foto = imagePath
                 if (err) {
-                    fs.unlinkSync('./public' + imagePath)
+                    fs.unlinkSync("./public" + imagePath);
                     return res
                         .status(500)
-                        .send({ message: 'upload gagal', error: err })
+                        .json({ message: 'upload gagal', error: err.message })
                 }
-                var data2 = {
-                    tanggalupload: new Date(),
-                    foto
-                }
-                console.log('masuk sini');
 
-                var sql = `update transactions set ? where iduser=${iduser}  `
-                mysqldb.query(sql, data2, (err2, res2) => {
-                    if (err2) return res.status(500).send(err2)
-                    console.log(res2);
-
-                    var data3 = {
-                        status: 'waiting confirm'
+                var sql = `UPDATE transactions set ? WHERE iduser=${iduser}`
+                mysqldb.query(sql, data, (err, res2) => {
+                    if (err) {
+                        return res.status(500).json({
+                            message: 'there is an error on the server',
+                            error: err.message
+                        })
                     }
-
-                    sql = `update transactiondetail where userid=${iduser}`
-                    mysqldb.query(sql, data3, (err3, res3) => {
-                        if (err3) res.status(500).send({ message: 'error on transactiondetail' })
-                    })
-
                 })
-                return res.status(200).send(res)
+            })
+            var data2 = {
+                status: 'waiting confirmation'
+            }
+            console.log(data2);
+            sql = `UPDATE transactiondetail set ? where userid=${iduser} and status='on process' `
+            mysqldb.query(sql, data2, (err1, result1) => {
+                if (err1) res.status(500).send(err1)
+                return res.status(200).send(result1)
             })
         }
         catch (error) {
-            console.log('error')
-            res.status(200).send({ status: error, message: 'there is an error' })
+            console.log('tes')
+            res.status(200).send({ status: error, message: 'there is a problem with the uploader' })
         }
-
     }
 }
+
+// var { iduser } = req.params
+// try {
+//     const path = '/game/images'
+//     const upload = uploader(path, 'TRANS').fields([{ name: 'image' }])
+
+//     upload(req, res, err => {
+//         const { image } = req.files
+//         const imagePath = image ? path + "/" + image[0].filename : null
+//         foto = imagePath
+//         if (err) {
+//             fs.unlinkSync('./public' + imagePath)
+//             return res
+//                 .status(500)
+//                 .send({ message: 'upload gagal', error: err })
+//         }
+//         var data2 = {
+//             tanggalupload: new Date(),
+//             foto
+//         }
+//         console.log('masuk sini');
+
+
+//         mysqldb.query(sql, data2, (err2, res2) => {
+//             if (err2) return res.status(500).send(err2)
+//             console.log(res2);
+
+
+//         })
+//         return res.status(200).send(res)
+//     })
+// }
+// catch (error) {
+//     console.log('error')
+//     res.status(200).send({ status: error, message: 'there is an error' })
+// }
+// var data3 = {
+//     status: 'waiting confirm'
+// }
+
+// sql = `update transactiondetail where userid=${iduser}`
+// mysqldb.query(sql, data3, (err3, res3) => {
+//     if (err3) res.status(500).send({ message: 'error on transactiondetail' })
+// })
+ // var sql = `update transactions set ? where iduser=${iduser}  `
