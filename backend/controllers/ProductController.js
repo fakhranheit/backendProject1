@@ -14,13 +14,15 @@ module.exports = {
                 const data = JSON.parse(req.body.data)
                 console.log(data)
                 data.Foto = imagePath
+
+                //jika ada error saat upload makan akan menghapus foto yg ada di .public/
                 if (err) {
                     fs.unlinkSync("./public" + imagePath);
                     return res
                         .status(500)
                         .json({ message: 'upload gagal', error: err.message })
                 }
-                // console.log('pathnya', imagePath)
+
                 var sql = 'insert into game set ?'
                 mysqldb.query(sql, data, (err, res2) => {
                     if (err) {
@@ -29,7 +31,7 @@ module.exports = {
                             error: err.message
                         })
                     }
-                    // sql = 'select * from game'
+
                     sql = 'select gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id from genre gr join game gm on gm.genreId=gr.id'
                     mysqldb.query(sql, (err1, result1) => {
                         if (err1) res.status(500).send(err1)
@@ -215,7 +217,7 @@ module.exports = {
         })
     },
     getLatestGame: (req, res) => {
-        var sql = 'select gr.*,gm.* from game gm join genre gr on gm.genreId=gr.id order by tanggalUpload DESC LIMIT 0, 3;'
+        var sql = 'select gr.*,gm.* from game gm join genre gr on gm.genreId=gr.id order by tanggalUpload DESC LIMIT 0, 5;'
         mysqldb.query(sql, (err, res1) => {
             if (err) return res.status(500).send(err)
             return res.status(200).send(res1)
@@ -353,47 +355,3 @@ module.exports = {
     }
 }
 
-// var { iduser } = req.params
-// try {
-//     const path = '/game/images'
-//     const upload = uploader(path, 'TRANS').fields([{ name: 'image' }])
-
-//     upload(req, res, err => {
-//         const { image } = req.files
-//         const imagePath = image ? path + "/" + image[0].filename : null
-//         foto = imagePath
-//         if (err) {
-//             fs.unlinkSync('./public' + imagePath)
-//             return res
-//                 .status(500)
-//                 .send({ message: 'upload gagal', error: err })
-//         }
-//         var data2 = {
-//             tanggalupload: new Date(),
-//             foto
-//         }
-//         console.log('masuk sini');
-
-
-//         mysqldb.query(sql, data2, (err2, res2) => {
-//             if (err2) return res.status(500).send(err2)
-//             console.log(res2);
-
-
-//         })
-//         return res.status(200).send(res)
-//     })
-// }
-// catch (error) {
-//     console.log('error')
-//     res.status(200).send({ status: error, message: 'there is an error' })
-// }
-// var data3 = {
-//     status: 'waiting confirm'
-// }
-
-// sql = `update transactiondetail where userid=${iduser}`
-// mysqldb.query(sql, data3, (err3, res3) => {
-//     if (err3) res.status(500).send({ message: 'error on transactiondetail' })
-// })
- // var sql = `update transactions set ? where iduser=${iduser}  `
