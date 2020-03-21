@@ -10,10 +10,11 @@ app.use(BodyParser.urlencoded({ extended: false }));
 app.use(BodyParser.json());
 app.use(express.static("public"));
 
-const { Authrouter, Gamerouter } = require("./routers");
+const { Authrouter, Gamerouter, UserRouter } = require("./routers");
 
 app.use("/auth", Authrouter);
 app.use('/game', Gamerouter)
+app.use('/user', UserRouter)
 
 app.get("/", (req, res) => {
   res.status(200).send(`<h1>Backend Aktif di localhost:${PORT} </h1>`);
