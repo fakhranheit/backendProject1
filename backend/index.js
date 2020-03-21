@@ -10,10 +10,10 @@ app.use(BodyParser.urlencoded({ extended: false }));
 app.use(BodyParser.json());
 app.use(express.static("public"));
 
-const { Authrouter, Gamerouter, UserRouter } = require("./routers");
+const { Authrouter, AdminRrouter, UserRouter } = require("./routers");
 
 app.use("/auth", Authrouter);
-app.use('/game', Gamerouter)
+app.use('/game', AdminRrouter)
 app.use('/user', UserRouter)
 
 app.get("/", (req, res) => {

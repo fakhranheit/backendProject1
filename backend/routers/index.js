@@ -1,9 +1,9 @@
 const Authrouter = require("./Authrouter");
-const Gamerouter = require('./Gamerouter')
+const AdminRrouter = require('./AdminRrouter')
 const UserRouter = require('./UserRouter')
 
 module.exports = {
   Authrouter,
-  Gamerouter,
+  AdminRrouter,
   UserRouter
 };

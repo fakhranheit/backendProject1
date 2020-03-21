@@ -107,15 +107,6 @@ module.exports = {
         })
 
     },
-    getGame: (req, res) => {
-        var sql = 'select gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id,gm.harga,gm.tanggalUpload from genre gr join game gm on gm.genreId=gr.id'
-        mysqldb.query(sql, (err, res1) => {
-            if (err) {
-                return res.status(500).send(err)
-            }
-            return res.status(200).send(res1)
-        })
-    },
     getDetailGame: (req, res) => {
         var id = req.params.id
         var sql = `select gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id,gm.harga from genre gr join game gm on gm.genreId=gr.id where gm.id=${id}`
@@ -248,6 +239,73 @@ module.exports = {
 
             //syntax sql untuk get data
             sql = `select gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id,gm.harga,gm.tanggalUpload from genre gr join game gm on gm.genreId=gr.id LIMIT ? OFFSET ?`
+
+            mysqldb.query(sql, [pageSize, offset], (err1, result2) => {
+                if (err) res.status(500).send(err1)
+
+                const pageOfData = result2;
+                return res.status(200).send({ pageOfData, pager })
+            })
+        })
+    },
+    getPayment: (req, res) => {
+        //menghitung jumlah banyaknya data 
+        const sqlCount = `SELECT COUNT(*) AS count FROM transactions`
+
+        let dataCount
+        mysqldb.query(sqlCount, (err, result) => {
+            if (err) res.status(500).send(err)
+            dataCount = result[0].count
+
+            //trigger pindah page
+            const page = parseInt(req.params.page) || 1
+            const pageSize = 9;
+            const pager = paginate(dataCount, page, pageSize)
+
+            //untuk limit database
+            let offset;
+            if (page === 1) {
+                offset = 0
+            } else {
+                offset = pageSize * (page - 1)
+            }
+
+            //syntax sql untuk get data
+            sql = `select u.username,u.email,tr.id,tr.totalharga,tr.foto,tr.tanggalupload from users u join transactions tr on u.id=tr.iduser LIMIT ? OFFSET ?`
+
+            mysqldb.query(sql, [pageSize, offset], (err1, result2) => {
+                if (err) res.status(500).send(err1)
+
+                const pageOfData = result2;
+                return res.status(200).send({ pageOfData, pager })
+            })
+        })
+    },
+    getGameAdmin: (req, res) => {
+        // console.log(req.params.page)
+        //menghitung jumlah banyaknya data 
+        const sqlCount = `SELECT COUNT(*) AS count FROM game`
+
+        let dataCount
+        mysqldb.query(sqlCount, (err, result) => {
+            if (err) res.status(500).send(err)
+            dataCount = result[0].count
+
+            //trigger pindah page
+            const page = parseInt(req.params.page) || 1
+            const pageSize = 10;
+            const pager = paginate(dataCount, page, pageSize)
+
+            //untuk limit database
+            let offset;
+            if (page === 1) {
+                offset = 0
+            } else {
+                offset = pageSize * (page - 1)
+            }
+
+            //syntax sql untuk get data
+            sql = `select gr.id as idgenre ,gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id,gm.harga,gm.tanggalUpload from genre gr join game gm on gm.genreId=gr.id LIMIT ? OFFSET ?`
 
             mysqldb.query(sql, [pageSize, offset], (err1, result2) => {
                 if (err) res.status(500).send(err1)
