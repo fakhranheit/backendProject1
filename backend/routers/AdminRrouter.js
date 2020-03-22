@@ -4,6 +4,7 @@ const router = express.Router();
 
 
 router.put('/editgame/:selectedidEdit', adminController.editGame)
+router.put('/approvepay/:iduser', adminController.approvePayment)
 router.post('/addGame', adminController.postGame)
 router.post('/addgenre', adminController.postGenre)
 router.get('/getgenre', adminController.getGenre)

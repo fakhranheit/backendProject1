@@ -247,6 +247,38 @@ module.exports = {
                 return res.status(200).send({ pageOfData, pager })
             })
         })
+    }, getGameAdmin: (req, res) => {
+        //menghitung jumlah banyaknya data 
+        const sqlCount = `SELECT COUNT(*) AS count FROM game`
+
+        let dataCount
+        mysqldb.query(sqlCount, (err, result) => {
+            if (err) res.status(500).send(err)
+            dataCount = result[0].count
+
+            //trigger pindah page
+            const page = parseInt(req.params.page) || 1
+            const pageSize = 10;
+            const pager = paginate(dataCount, page, pageSize)
+
+            //untuk limit database
+            let offset;
+            if (page === 1) {
+                offset = 0
+            } else {
+                offset = pageSize * (page - 1)
+            }
+
+            //syntax sql untuk get data
+            sql = `select gr.id as idgenre ,gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id,gm.harga,gm.tanggalUpload from genre gr join game gm on gm.genreId=gr.id  LIMIT ? OFFSET ?`
+
+            mysqldb.query(sql, [pageSize, offset], (err1, result2) => {
+                if (err) res.status(500).send(err1)
+
+                const pageOfData = result2;
+                return res.status(200).send({ pageOfData, pager })
+            })
+        })
     },
     getPayment: (req, res) => {
         //menghitung jumlah banyaknya data 
@@ -271,7 +303,7 @@ module.exports = {
             }
 
             //syntax sql untuk get data
-            sql = `select u.username,u.email,tr.id,tr.totalharga,tr.foto,tr.tanggalupload from users u join transactions tr on u.id=tr.iduser LIMIT ? OFFSET ?`
+            sql = `select u.id as iduser ,u.username,u.email,tr.id,tr.totalharga,tr.foto,tr.tanggalupload from users u join transactions tr on u.id=tr.iduser where paymentstatus='pending' LIMIT ? OFFSET ? `
 
             mysqldb.query(sql, [pageSize, offset], (err1, result2) => {
                 if (err) res.status(500).send(err1)
@@ -281,10 +313,28 @@ module.exports = {
             })
         })
     },
-    getGameAdmin: (req, res) => {
-        // console.log(req.params.page)
+    approvePayment: (req, res) => {
+        //---------------------------------Mengubah status transaksi-------------------------------------//
+        var { iduser } = req.params
+        var data2 = {
+            paymentstatus: 'approved'
+        }
+        var sql = `update transactions set ? where iduser=${iduser} and paymentstatus='pending' `
+        mysqldb.query(sql, data2, (err2, result2) => {
+            if (err2) res.status(500).send(err2)
+        })
+
+        //-----------------------------mengubah status item yang user beli------------------------------//
+        var data = {
+            status: 'purchased'
+        }
+        sql = `update transactiondetail set ? where userid=${iduser} and status='waiting confirmation' `
+        mysqldb.query(sql, data, (err1, result1) => {
+            if (err1) res.status(500).send(err1)
+        })
+        //---------------------------------------------------------------------------------------------//
         //menghitung jumlah banyaknya data 
-        const sqlCount = `SELECT COUNT(*) AS count FROM game`
+        const sqlCount = `SELECT COUNT(*) AS count FROM transactions`
 
         let dataCount
         mysqldb.query(sqlCount, (err, result) => {
@@ -293,7 +343,7 @@ module.exports = {
 
             //trigger pindah page
             const page = parseInt(req.params.page) || 1
-            const pageSize = 10;
+            const pageSize = 9;
             const pager = paginate(dataCount, page, pageSize)
 
             //untuk limit database
@@ -305,15 +355,17 @@ module.exports = {
             }
 
             //syntax sql untuk get data
-            sql = `select gr.id as idgenre ,gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id,gm.harga,gm.tanggalUpload from genre gr join game gm on gm.genreId=gr.id LIMIT ? OFFSET ?`
+            sql = `select u.id as iduser ,u.username,u.email,tr.id,tr.totalharga,tr.foto,tr.tanggalupload from users u join transactions tr on u.id=tr.iduser where paymentstatus='pending' LIMIT ? OFFSET ? `
 
-            mysqldb.query(sql, [pageSize, offset], (err1, result2) => {
-                if (err) res.status(500).send(err1)
+            mysqldb.query(sql, [pageSize, offset], (err3, result2) => {
+                if (err3) res.status(500).send(err3)
 
                 const pageOfData = result2;
                 return res.status(200).send({ pageOfData, pager })
             })
         })
+
     }
+
 }
 
