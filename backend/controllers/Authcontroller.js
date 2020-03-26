@@ -4,7 +4,7 @@ module.exports = {
   registeruser: (req, res) => {
     var { username, password, email } = req.body;
     // console.log("masuk sini");
-    var sql = `select username from users where username='${username}' and email='${email}' `;
+    var sql = `select username,email from users where username='${username}' or email='${email}' `;
     // console.log(email);
     mysqldb.query(sql, (err, results) => {
       // console.log(results);
@@ -13,7 +13,7 @@ module.exports = {
       }
       if (results.length > 0) {
         // console.log(results);
-        return res.status(200).send({ status: "error register", message: "username has been taken" });
+        return res.status(200).send({ status: "error register", message: "username or email has been taken" });
       } else {
         var hashpassword = kriptopassword(password);
         var dataUser = {

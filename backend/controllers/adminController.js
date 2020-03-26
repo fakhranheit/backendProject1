@@ -315,23 +315,50 @@ module.exports = {
     },
     approvePayment: (req, res) => {
         //---------------------------------Mengubah status transaksi-------------------------------------//
-        var { iduser } = req.params
-        var data2 = {
-            paymentstatus: 'approved'
-        }
-        var sql = `update transactions set ? where iduser=${iduser} and paymentstatus='pending' `
-        mysqldb.query(sql, data2, (err2, result2) => {
-            if (err2) res.status(500).send(err2)
-        })
+        var { id } = req.params
+        var { iduser, status } = req.body
+        // console.log(id, iduser, status);
 
-        //-----------------------------mengubah status item yang user beli------------------------------//
-        var data = {
-            status: 'purchased'
+        //jika status approved
+        if (status) {
+            console.log(status, id);
+
+            var data2 = {
+                paymentstatus: 'approved'
+            }
+            var sql = `update transactions set ? where id=${id} and paymentstatus='pending' `
+            mysqldb.query(sql, data2, (err2, result2) => {
+                if (err2) res.status(500).send(err2)
+            })
+
+            //-----------------------------mengubah status item yang user beli------------------------------//
+            var data = {
+                status: 'purchased'
+            }
+            sql = `update transactiondetail set ? where idtransaction=${id} and status='waiting confirmation' `
+            mysqldb.query(sql, data, (err1, result1) => {
+                if (err1) res.status(500).send(err1)
+            })
+        } else {
+            //jika status declined
+            console.log(status);
+            var data2 = {
+                paymentstatus: 'declined'
+            }
+            var sql = `update transactions set ? where id=${id} and paymentstatus='pending' `
+            mysqldb.query(sql, data2, (err2, result2) => {
+                if (err2) res.status(500).send(err2)
+            })
+
+            //-----------------------------mengubah status item yang user beli------------------------------//
+            var data = {
+                status: 'purchased'
+            }
+            sql = `update transactiondetail set ? where idtransaction=${id} and status='waiting confirmation' `
+            mysqldb.query(sql, data, (err1, result1) => {
+                if (err1) res.status(500).send(err1)
+            })
         }
-        sql = `update transactiondetail set ? where userid=${iduser} and status='waiting confirmation' `
-        mysqldb.query(sql, data, (err1, result1) => {
-            if (err1) res.status(500).send(err1)
-        })
         //---------------------------------------------------------------------------------------------//
         //menghitung jumlah banyaknya data 
         const sqlCount = `SELECT COUNT(*) AS count FROM transactions`
@@ -365,7 +392,85 @@ module.exports = {
             })
         })
 
-    }
+    },
+    getHistory: (req, res) => {
+        console.log('masuk sini');
+        //menghitung jumlah banyaknya data 
+        const sqlCount = `SELECT COUNT(*) AS count
+        FROM transactiondetail td 
+        JOIN game g on g.id=td.gameid 
+        WHERE td.status='purchased' 
+        GROUP BY td.gameid`
 
+        let dataCount
+        mysqldb.query(sqlCount, (err, result) => {
+            if (err) res.status(500).send(err)
+            dataCount = result[0].count
+            console.log('ini datacount', dataCount)
+            //trigger pindah page
+            const page = parseInt(req.params.page) || 1
+            const pageSize = 9;
+            const pager = paginate(dataCount, page, pageSize)
+
+            // untuk limit database
+            let offset;
+            if (page === 1) {
+                offset = 0
+            } else {
+                offset = pageSize * (page - 1)
+            }
+
+            //syntax sql untuk get data
+            sql = `SELECT COUNT(*) AS jumlahUser,g.namaGame,(g.harga * COUNT(*) ) as total_penjualan
+                    FROM transactiondetail td 
+                    JOIN game g on g.id=td.gameid 
+                    WHERE td.status='purchased' 
+                    GROUP BY td.gameid LIMIT ? OFFSET ? `
+
+            mysqldb.query(sql, [pageSize, offset], (err3, result2) => {
+                if (err3) res.status(500).send(err3)
+
+                const pageOfData = result2;
+                return res.status(200).send({ pageOfData, pager })
+            })
+        })
+    },
+    searchGame: (req, res) => {
+        var search = req.body.search
+        console.log('req body', search);
+
+        // menghitung jumlah banyaknya data
+        const sqlCount = `SELECT COUNT(*) AS count
+           FROM game  WHERE namaGame LIKE '${search}%'`
+
+        let dataCount
+        mysqldb.query(sqlCount, (err, result) => {
+            if (err) res.status(500).send(err)
+            dataCount = result[0].count
+            console.log('ini datacount', dataCount)
+            //trigger pindah page
+            const page = parseInt(req.params.page) || 1
+            const pageSize = 9;
+            const pager = paginate(dataCount, page, pageSize)
+
+            // untuk limit database
+            let offset;
+            if (page === 1) {
+                offset = 0
+            } else {
+                offset = pageSize * (page - 1)
+            }
+
+            //syntax sql untuk get data
+            sql = `SELECT gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id,gm.harga,gm.tanggalUpload from genre gr join game gm on gm.genreId=gr.id WHERE gm.namaGame LIKE '${search}%'  LIMIT ? OFFSET ? `
+
+            mysqldb.query(sql, [pageSize, offset], (err3, result2) => {
+                if (err3) res.status(500).send(err3)
+
+                const pageOfData = result2;
+                return res.status(200).send({ pageOfData, pager })
+            })
+        })
+    }
 }
 

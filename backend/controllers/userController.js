@@ -32,7 +32,7 @@ module.exports = {
     }, getDetailCart: (req, res) => {
         var id = req.params.id
         console.log('masuk sini', id);
-        var sql = `SELECT u.id,u.username,t.id as idtransaksidetail,g.*,t.status,t.userid FROM users u join transactiondetail t on t.userid=u.id join game g on g.id=t.gameid where u.id=${id}`
+        var sql = `SELECT u.id,u.username,t.id as idtransaksidetail,g.*,t.status,t.userid FROM users u join transactiondetail t on t.userid=u.id join game g on g.id=t.gameid where u.id=${id} and t.status='on cart'`
         mysqldb.query(sql, (err, result) => {
             if (err) return res.status(500).send(err)
             console.log(result);
@@ -58,13 +58,15 @@ module.exports = {
         var { totalharga } = req.body
         var data = {
             iduser,
-            totalharga
+            totalharga,
+            paymentstatus: 'waiting upload'
         }
 
         console.log('ini iduser', iduser, 'ini totalharga', totalharga);
         var sql = `INSERT INTO transactions set ?`
         mysqldb.query(sql, data, (err, result) => {
             if (err) return res.status(500).send(err)
+
             var data2 = {
                 idtransaction: result.insertId,
                 status: 'on process'
@@ -83,7 +85,7 @@ module.exports = {
     getTotalHarga: (req, res) => {
         var id = req.params.id
         console.log(id);
-        var sql = `select totalharga from transactions where iduser=${id}`
+        var sql = `select totalharga from transactions where iduser=${id} and paymentstatus='waiting upload'`
         mysqldb.query(sql, (err, result) => {
             if (err) return res.status(500).send(err)
             console.log(result);
