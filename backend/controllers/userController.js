@@ -85,7 +85,7 @@ module.exports = {
     getTotalHarga: (req, res) => {
         var id = req.params.id
         console.log(id);
-        var sql = `select totalharga from transactions where iduser=${id} and paymentstatus='waiting upload'`
+        var sql = `select id,totalharga from transactions where iduser=${id} and paymentstatus='waiting upload'`
         mysqldb.query(sql, (err, result) => {
             if (err) return res.status(500).send(err)
             console.log(result);
@@ -94,7 +94,7 @@ module.exports = {
 
     },
     postTransaction: (req, res) => {
-        var iduser = req.params.iduser
+        var idtrans = req.params.idtrans
         try {
             const path = "/game/images"
             const upload = uploader(path, 'TRANS').fields([{ name: 'image' }])
@@ -112,7 +112,7 @@ module.exports = {
                         .json({ message: 'upload gagal', error: err.message })
                 }
 
-                var sql = `UPDATE transactions set ? WHERE iduser=${iduser}`
+                var sql = `UPDATE transactions set ? WHERE id=${idtrans}`
                 mysqldb.query(sql, data, (err, res2) => {
                     if (err) {
                         return res.status(500).json({

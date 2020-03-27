@@ -4,7 +4,7 @@ const router = express.Router();
 
 router.post('/addcart', UserController.addCart)
 router.post('/checkout/:iduser', UserController.checkoutCart)
-router.put('/uploadTrans/:iduser', UserController.postTransaction)
+router.put('/uploadTrans/:idtrans', UserController.postTransaction)
 router.get('/gettotalharga/:id', UserController.getTotalHarga)
 router.get('/getcart/:id', UserController.getDetailCart)
 router.delete('/deletecart/:id', UserController.deleteCart)

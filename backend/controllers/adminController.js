@@ -33,7 +33,7 @@ module.exports = {
                         })
                     }
 
-                    sql = 'select gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id from genre gr join game gm on gm.genreId=gr.id'
+                    sql = 'select gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id from genre gr join game gm on gm.genreId=gr.id order by gm.namaGame'
                     mysqldb.query(sql, (err1, result1) => {
                         if (err1) res.status(500).send(err1)
                         res.status(200).send({ dataGame: result1 })
@@ -148,7 +148,7 @@ module.exports = {
                     fs.unlinkSync(`./public` + imagePath)
                 }
                 console.log(result);
-                sql = `select gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id from genre gr join game gm on gm.genreId=gr.id`;
+                sql = `select gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id from genre gr join game gm on gm.genreId=gr.id order by gm.namaGame`;
                 mysqldb.query(sql, (err, result3) => {
                     if (err) res.status(500).send(err);
                     res.status(200).send({ dataProduct: result3 });
@@ -194,7 +194,7 @@ module.exports = {
                                 }
                             }
 
-                            sql = `select gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id,gm.tanggalUpload,gm.harga from genre gr join game gm on gm.genreId=gr.id`
+                            sql = `select gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id,gm.tanggalUpload,gm.harga from genre gr join game gm on gm.genreId=gr.id order by gm.namaGame`
                             mysqldb.query(sql, (err, res3) => {
                                 if (err) return res.status(500).send(err)
                                 return res.status(200).send(res3)
@@ -238,7 +238,7 @@ module.exports = {
             }
 
             //syntax sql untuk get data
-            sql = `select gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id,gm.harga,gm.tanggalUpload from genre gr join game gm on gm.genreId=gr.id LIMIT ? OFFSET ?`
+            sql = `select gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id,gm.harga,gm.tanggalUpload from genre gr join game gm on gm.genreId=gr.id order by gm.namaGame LIMIT ? OFFSET ?`
 
             mysqldb.query(sql, [pageSize, offset], (err1, result2) => {
                 if (err) res.status(500).send(err1)
@@ -270,7 +270,7 @@ module.exports = {
             }
 
             //syntax sql untuk get data
-            sql = `select gr.id as idgenre ,gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id,gm.harga,gm.tanggalUpload from genre gr join game gm on gm.genreId=gr.id  LIMIT ? OFFSET ?`
+            sql = `select gr.id as idgenre ,gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id,gm.harga,gm.tanggalUpload from genre gr join game gm on gm.genreId=gr.id order by gm.namaGame LIMIT ? OFFSET ?`
 
             mysqldb.query(sql, [pageSize, offset], (err1, result2) => {
                 if (err) res.status(500).send(err1)
@@ -448,10 +448,12 @@ module.exports = {
             if (err) res.status(500).send(err)
             dataCount = result[0].count
             console.log('ini datacount', dataCount)
+
             //trigger pindah page
             const page = parseInt(req.params.page) || 1
             const pageSize = 9;
             const pager = paginate(dataCount, page, pageSize)
+            console.log('ini page', page);
 
             // untuk limit database
             let offset;
@@ -462,12 +464,12 @@ module.exports = {
             }
 
             //syntax sql untuk get data
-            sql = `SELECT gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id,gm.harga,gm.tanggalUpload from genre gr join game gm on gm.genreId=gr.id WHERE gm.namaGame LIKE '${search}%'  LIMIT ? OFFSET ? `
+            sql = `SELECT gr.namaGenre,gm.namaGame,gm.deskripsi,gm.foto,gm.id,gm.harga,gm.tanggalUpload from genre gr join game gm on gm.genreId=gr.id WHERE gm.namaGame LIKE '${search}%' order by gm.namaGame LIMIT ? OFFSET ? `
 
             mysqldb.query(sql, [pageSize, offset], (err3, result2) => {
                 if (err3) res.status(500).send(err3)
-
                 const pageOfData = result2;
+                console.log(pageOfData);
                 return res.status(200).send({ pageOfData, pager })
             })
         })
