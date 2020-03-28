@@ -67,7 +67,7 @@ module.exports = {
 
     },
     getGenre: (req, res) => {
-        var sql = 'select * from genre'
+        var sql = 'select * from genre order by namaGenre'
         mysqldb.query(sql, (err, res1) => {
             if (err) return res.status(500).send(err)
             return res.status(200).send(res1)
@@ -316,12 +316,12 @@ module.exports = {
     approvePayment: (req, res) => {
         //---------------------------------Mengubah status transaksi-------------------------------------//
         var { id } = req.params
-        var { iduser, status } = req.body
-        // console.log(id, iduser, status);
+        var { status } = req.body
+        console.log('line 320', id, status);
 
         //jika status approved
         if (status) {
-            console.log(status, id);
+            console.log('line 324', status, id);
 
             var data2 = {
                 paymentstatus: 'approved'
@@ -335,13 +335,17 @@ module.exports = {
             var data = {
                 status: 'purchased'
             }
+
             sql = `update transactiondetail set ? where idtransaction=${id} and status='waiting confirmation' `
             mysqldb.query(sql, data, (err1, result1) => {
                 if (err1) res.status(500).send(err1)
+                console.log('line 338', id);
+                console.log('line 342', result1);
             })
+
         } else {
             //jika status declined
-            console.log(status);
+            console.log('line 346', status);
             var data2 = {
                 paymentstatus: 'declined'
             }
@@ -350,14 +354,6 @@ module.exports = {
                 if (err2) res.status(500).send(err2)
             })
 
-            //-----------------------------mengubah status item yang user beli------------------------------//
-            var data = {
-                status: 'purchased'
-            }
-            sql = `update transactiondetail set ? where idtransaction=${id} and status='waiting confirmation' `
-            mysqldb.query(sql, data, (err1, result1) => {
-                if (err1) res.status(500).send(err1)
-            })
         }
         //---------------------------------------------------------------------------------------------//
         //menghitung jumlah banyaknya data 

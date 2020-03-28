@@ -126,7 +126,7 @@ module.exports = {
                 status: 'waiting confirmation'
             }
             console.log(data2);
-            sql = `UPDATE transactiondetail set ? where userid=${iduser} and status='on process' `
+            sql = `UPDATE transactiondetail set ? where idtransaction=${idtrans} and status='on process' `
             mysqldb.query(sql, data2, (err1, result1) => {
                 if (err1) res.status(500).send(err1)
                 return res.status(200).send(result1)
