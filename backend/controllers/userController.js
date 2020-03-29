@@ -5,49 +5,64 @@ const paginate = require('jw-paginate')
 
 module.exports = {
     addCart: (req, res) => {
-        console.log('masuk sini');
-
         var { gameid, userid } = req.body
+        console.log('line9', gameid, userid);
 
-        var data = {
-            gameid,
-            userid,
-            status: 'on cart'
-        }
 
-        console.log('tes', req.body)
-        var sql = `select * from transactiondetail where gameid=${gameid} and userid=${userid}`
-        mysqldb.query(sql, (err1, res1) => {
-            if (err1) return res.status(500).send(err1)
-            if (res1.length > 0) {
-                console.log('masuk data dobel', res1.length);
-                return res.status(200).send({ message: 'item sudah ada di cart' })
+        var sql = `select * from transactiondetail where userid=${userid} and gameid=${gameid} and status='purchased';`
+        mysqldb.query(sql, (err, result) => {
+            if (err) {
+                return res.status(500).send(err)
             }
-            var sql = `insert into transactiondetail set ?`
-            mysqldb.query(sql, data, (err2, res2) => {
-                if (err2) return res.status(500).send(err2)
-                return res.status(200).send({ res2, message: 'item berhasil ditambahkan' })
-            })
+
+            try {
+                console.log(result[0].status);
+                return res.status(200).send({ message: 'you already buy this game' })
+            } catch (error) {
+                var data = {
+                    gameid,
+                    userid,
+                    status: 'on cart'
+                }
+
+                console.log('tes', req.body)
+                sql = `select * from transactiondetail where gameid=${gameid} and userid=${userid}`
+                mysqldb.query(sql, (err1, res1) => {
+                    if (err1) return res.status(500).send(err1)
+                    if (res1.length > 0) {
+                        console.log('masuk data dobel', res1.length);
+                        return res.status(200).send({ message: 'item sudah ada di cart' })
+                    }
+                    var sql = `insert into transactiondetail set ?`
+                    mysqldb.query(sql, data, (err2, res2) => {
+                        if (err2) return res.status(500).send(err2)
+                        return res.status(200).send({ res2, message: 'item berhasil ditambahkan' })
+                    })
+                })
+
+            }
         })
+
+
     }, getDetailCart: (req, res) => {
         var id = req.params.id
         console.log('masuk sini', id);
         var sql = `SELECT u.id,u.username,t.id as idtransaksidetail,g.*,t.status,t.userid FROM users u join transactiondetail t on t.userid=u.id join game g on g.id=t.gameid where u.id=${id} and t.status='on cart'`
         mysqldb.query(sql, (err, result) => {
             if (err) return res.status(500).send(err)
-            console.log(result);
+            // console.log(result);
             return res.status(200).send(result)
         })
     },
     deleteCart: (req, res) => {
         var id = req.params.id
-        console.log(id);
+        // console.log(id);
         var sql = `delete from transactiondetail where id=${id}`
         mysqldb.query(sql, (err, result) => {
             if (err) {
                 return res.status(500).send(err)
             }
-            console.log(result);
+            // console.log(result);
             return res.status(200).send(result)
         })
     },
