@@ -136,5 +136,18 @@ module.exports = {
             console.log('tes')
             res.status(200).send({ status: error, message: 'there is a problem with the uploader' })
         }
+    },
+    getPurchasedGame: (req, res) => {
+        var { iduser } = req.params
+
+        var sql = `SELECT td.userid,td.status,gm.namaGame,gm.Foto,gm.deskripsi 
+                   FROM transactiondetail td join game gm on gm.id=td.gameid 
+                   WHERE td.userid=${iduser} and td.status='purchased' ORDER BY gm.namaGame`
+
+        mysqldb.query(sql, (err, result) => {
+            if (err) return res.status(500).send(err)
+            console.log(result);
+            return res.status(200).send(result)
+        })
     }
 }

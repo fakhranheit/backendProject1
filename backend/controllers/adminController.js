@@ -421,7 +421,7 @@ module.exports = {
                     FROM transactiondetail td 
                     JOIN game g on g.id=td.gameid 
                     WHERE td.status='purchased' 
-                    GROUP BY td.gameid LIMIT ? OFFSET ? `
+                    GROUP BY td.gameid ORDER BY g.namaGame LIMIT ? OFFSET ? `
 
             mysqldb.query(sql, [pageSize, offset], (err3, result2) => {
                 if (err3) res.status(500).send(err3)
@@ -468,6 +468,19 @@ module.exports = {
                 console.log(pageOfData);
                 return res.status(200).send({ pageOfData, pager })
             })
+        })
+    },
+    getCardHome: (req, res) => {
+
+        var sql = `SELECT gm.id as idgame,gm.harga,gm.namaGame,gr.namaGenre 
+        FROM game gm join genre gr on gr.id=gm.genreId 
+        HAVING(harga)<500000 
+        ORDER BY rand() limit 5;`
+
+        mysqldb.query(sql, (err, result) => {
+            if (err) return res.status(500).send(err)
+            console.log(result);
+            return res.status(200).send(result)
         })
     }
 }

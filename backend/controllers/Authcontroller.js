@@ -47,7 +47,7 @@ module.exports = {
         }
         // console.log("ini ", result);
         if (result.length > 0) {
-          return res.status(200).send({ id: result[0].id, username: result[0].username, password: result[0].password, role: result[0].role, status: "login berhasil" });
+          return res.status(200).send({ id: result[0].id, username: result[0].username, password: result[0].password, role: result[0].role, status: "login success" });
         } else {
           return res.status(500).send({ status: "error", message: "username atau password salah", err });
         }
@@ -62,9 +62,9 @@ module.exports = {
         }
         // console.log("ini ", result);
         if (result.length > 0) {
-          return res.status(200).send({ id: result[0].id, username: result[0].username, password: result[0].password, role: result[0].role, status: "login berhasil" });
+          return res.status(200).send({ id: result[0].id, username: result[0].username, password: result[0].password, role: result[0].role, status: "login success" });
         } else {
-          return res.status(200).send({ status: "error", message: "username atau password salah" });
+          return res.status(200).send({ status: "error", message: "wrong username or password " });
         }
       });
     }
